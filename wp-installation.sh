@@ -1,23 +1,23 @@
 #!/bin/bash -e
 clear
 echo "================================================"
-echo " WordPress Installatie Script"
+echo " WordPress Installation Script"
 echo "================================================"
 echo "Database name: "
 read -e dbname
-echo "Database Gebruiker: "
+echo "Database User: "
 read -e dbuser
-echo "Database Wachtwoord: "
+echo "Database Password: "
 read -s dbpass
-echo "Subdomeinname (bijvoorbeeld: transformers): "
+echo "Subdomain name: "
 read -e sbname
-echo "Begin de installatie? (y/n)"
+echo "Start the installation? (y/n)"
 read -e run
 if [ "$run" == n ] ; then
 exit
 else
 echo "================================================"
-echo " Marijn zijn robot installeert WordPress voor u."
+echo " A Robot is installing WordPress for you."
 echo "================================================"
 
 #download wordpress
@@ -54,7 +54,7 @@ perl -i -pe'
 #maak uploads map en verander permissies
 mkdir /var/www/$sbname/public_html/wp-content/uploads
 chmod 775 /var/www/$sbname/public_html/wp-content/uploads
-chown -R www-data:www-data /var/www/$sbname/public_html
+chown -R apache:apache /var/www/$sbname/public_html
 echo "Cleaning..."
 
 #verwijder zip file
@@ -67,7 +67,7 @@ echo "<VirtualHost *:80>
 	DocumentRoot /var/www/$sbname/public_html
 	ErrorLog /var/www/$sbname/error.log
 	CustomLog /var/www/$sbname/custom.log combined
-</VirtualHost>" >> test.txt
+</VirtualHost>" >> /etc/httpd/sites-available/domains.conf
 
 echo "========================="
 echo "Installation is voltooid."
