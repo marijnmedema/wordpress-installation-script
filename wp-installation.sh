@@ -3,13 +3,13 @@ clear
 echo "================================================"
 echo " WordPress Installation Script"
 echo "================================================"
-echo "Database name: "
+echo "Database Name: "
 read -e dbname
 echo "Database User: "
 read -e dbuser
 echo "Database Password: "
 read -s dbpass
-echo "Subdomain name: "
+echo "Subdomain Name: "
 read -e sbname
 echo "Start the installation? (y/n)"
 read -e run
@@ -21,27 +21,27 @@ echo " A Robot is installing WordPress for you."
 echo "================================================"
 
 #download wordpress
-wget https://wordpress.org/latest.tar.gz
+curl -O https://wordpress.org/latest.tar.gz
 
 #unzip wordpress
 tar -zxvf latest.tar.gz
 
-#kopieer bestanden een map omhoog
+#copy the files to another folder
 mkdir -p /var/www/$sbname/public_html
 cp -R wordpress/* /var/www/$sbname/public_html
 
-#verwijder de wordpress map
+#remove the wordpress folder
 rm -rf wordpress
 
-#wp-config maken
+#create wp-config file
 cp /var/www/$sbname/public_html/wp-config-sample.php /var/www/$sbname/public_html/wp-config.php
 
-#stel database details in met perl zoek en vervang
+#configure database details with perl search and replace
 perl -pi -e "s/database_name_here/$dbname/g" /var/www/$sbname/public_html/wp-config.php
 perl -pi -e "s/username_here/$dbuser/g" /var/www/$sbname/public_html/wp-config.php
 perl -pi -e "s/password_here/$dbpass/g" /var/www/$sbname/public_html/wp-config.php
 
-#stel WP salts in
+#configure WP salts
 perl -i -pe'
   BEGIN {
     @chars = ("a" .. "z", "A" .. "Z", 0 .. 9);
@@ -51,16 +51,16 @@ perl -i -pe'
   s/put your unique phrase here/salt()/ge
 ' /var/www/$sbname/public_html/wp-config.php
 
-#maak uploads map en verander permissies
+#create an uploads folder and change permissions
 mkdir /var/www/$sbname/public_html/wp-content/uploads
 chmod 775 /var/www/$sbname/public_html/wp-content/uploads
 chown -R apache:apache /var/www/$sbname/public_html
 echo "Cleaning..."
 
-#verwijder zip file
+#remove the zip file
 rm latest.tar.gz*
 
-# Voeg virtualhost toe aan domains.conf
+# add VirtualHost lines to config file (sites-enabled needs a link to sites-available/domains.conf
 echo "<VirtualHost *:80>
 	ServerName www.$sbname.site.com
 	ServerAlias $sbname.site.com
@@ -70,6 +70,6 @@ echo "<VirtualHost *:80>
 </VirtualHost>" >> /etc/httpd/sites-available/domains.conf
 
 echo "========================="
-echo "Installation is voltooid."
+echo "Installation is finished."
 echo "========================="
 fi
