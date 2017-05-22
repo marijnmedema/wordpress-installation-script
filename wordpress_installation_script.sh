@@ -1,4 +1,4 @@
-
+#Before the execution of this script, change the DNS records of the site towards the webserver
 #!/bin/bash -e
 clear
 echo "================================================"
@@ -10,8 +10,8 @@ echo "Database User: "
 read -e dbuser
 echo "Database Password: "
 read -s dbpass
-echo "Subdomain Name: "
-read -e sbname
+echo "Domain name: "
+read -e dmname
 echo "Start the installation? (y/n)"
 read -e run
 if [ "$run" == n ] ; then
@@ -28,19 +28,19 @@ curl -O https://wordpress.org/latest.tar.gz
 tar -zxvf latest.tar.gz
 
 #copy the files to another folder
-mkdir -p /var/www/$sbname/public_html
-cp -R wordpress/* /var/www/$sbname/public_html
+mkdir -p /var/www/$dmname/public_html
+cp -R wordpress/* /var/www/$dmname/public_html
 
 #remove the wordpress folder
 rm -rf wordpress
 
 #create wp-config file
-cp /var/www/$sbname/public_html/wp-config-sample.php /var/www/$sbname/public_html/wp-config.php
+cp /var/www/$dmname/public_html/wp-config-sample.php /var/www/$dmname/public_html/wp-config.php
 
 #configure database details with perl search and replace
-perl -pi -e "s/database_name_here/$dbname/g" /var/www/$sbname/public_html/wp-config.php
-perl -pi -e "s/username_here/$dbuser/g" /var/www/$sbname/public_html/wp-config.php
-perl -pi -e "s/password_here/$dbpass/g" /var/www/$sbname/public_html/wp-config.php
+perl -pi -e "s/database_name_here/$dbname/g" /var/www/$dmname/public_html/wp-config.php
+perl -pi -e "s/username_here/$dbuser/g" /var/www/$dmname/public_html/wp-config.php
+perl -pi -e "s/password_here/$dbpass/g" /var/www/$dmname/public_html/wp-config.php
 
 #configure WP salts
 perl -i -pe'
@@ -50,25 +50,27 @@ perl -i -pe'
     sub salt { join "", map $chars[ rand @chars ], 1 .. 64 }
   }
   s/put your unique phrase here/salt()/ge
-' /var/www/$sbname/public_html/wp-config.php
+' /var/www/$dmname/public_html/wp-config.php
 
 #create an uploads folder and change permissions
-mkdir /var/www/$sbname/public_html/wp-content/uploads
-chmod 775 /var/www/$sbname/public_html/wp-content/uploads
-chown -R apache:apache /var/www/$sbname/public_html
+mkdir /var/www/$dmname/public_html/wp-content/uploads
+chmod 775 /var/www/$dmname/public_html/wp-content/uploads
+chown -R apache:apache /var/www/$dmname/public_html
 echo "Cleaning..."
+#replace apache:apache with www-data:www-data if you're running ubuntu server
 
 #remove the zip file
 rm latest.tar.gz*
 
 # add VirtualHost lines to config file (sites-enabled needs a link to sites-available/domains.conf
 echo "<VirtualHost *:80>
-	ServerName www.$sbname.site.com
-	ServerAlias $sbname.site.com
-	DocumentRoot /var/www/$sbname/public_html
-	ErrorLog /var/www/$sbname/error.log
-	CustomLog /var/www/$sbname/custom.log combined
+	ServerName www.$dmname.com
+	ServerAlias $dmname.com
+	DocumentRoot /var/www/$dmname/public_html
+	ErrorLog /var/www/$dmname/error.log
+	CustomLog /var/www/$dmname/custom.log combined
 </VirtualHost>" >> /etc/httpd/sites-available/domains.conf
+# replace /etc/httpd/sites-available/domains.conf  with /etc/apache2/sites-available/000-default.conf if you're running Ubuntu server
 
 echo "========================="
 echo "Installation is finished."
